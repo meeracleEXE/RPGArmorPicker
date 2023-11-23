@@ -19,7 +19,7 @@ public class CustomGA {
     private MinMaxPriorityQueue<int[]> population = MinMaxPriorityQueue.orderedBy(customComparator)
             .maximumSize(POPULATION_SIZE)
             .create();
-    private int[] priority = {0,1}; // STR highest priority, DEX second priority
+    private int[] priority = {1,2}; // Default: STR highest priority, DEX second priority
     private int[] currentBest = new int[]{0,0,0,0};
     private double bestFitnessRunningTotal;
     private double meanBestFitness;
@@ -43,6 +43,11 @@ public class CustomGA {
                 "CHESTPLATE: "+ inv[1] + "\n" +
                 "LEGGINGS: "+ inv[1] + "\n" +
                 "BOOTS: "+ inv[1] + "\n");
+    }
+
+    public CustomGA(int which, int[] priority) {
+        this();
+        this.priority = priority;
     }
 
     public void run() {
