@@ -1,74 +1,45 @@
 package csci4560.RPGArmorPickerGA;
 
-import java.util.Comparator;
 import java.util.concurrent.ThreadLocalRandom;
-import com.google.common.collect.MinMaxPriorityQueue;
 
-public class CustomGA {
-    private final int SIZE = 25;
-    private final int FIRST_PENALTY = 10;
-    private final int SECOND_PENALTY = 5;
-    private final int POPULATION_SIZE = 30;
-    private final int MAX_ITERATIONS = 300;
-    private int GENERATIONS = 0;
-    private final Comparator customComparator = (a,b) -> {
-        if (calculateFitness((int[]) a) > calculateFitness((int[]) b))
-            return -1;
-        return 1;
-    };
-    private MinMaxPriorityQueue<int[]> population = MinMaxPriorityQueue.orderedBy(customComparator)
-            .maximumSize(POPULATION_SIZE)
-            .create();
-    private int[] priority = {1,2}; // Default: STR highest priority, DEX second priority
-    private int[] currentBest = new int[]{0,0,0,0};
-    private double bestFitnessRunningTotal;
-    private double meanBestFitness;
-    public double bestFitness;
-    ArmorSet[] inv = new ArmorSet[4];
+public class IntGA extends GeneticBaseClass<int[]> {
 
-    public CustomGA() {
+    public IntGA() {
+        currentBest = new int[]{0, 0, 0, 0};
+        SIZE = 32;
         for (int i = 0; i < inv.length; i++) {
-            inv[i] = new ArmorSet(25);
+            inv[i] = new ArmorSet(SIZE);
         }
         for (int i = 0; i < POPULATION_SIZE; i++) {
             population.add(new int[]{
                     ThreadLocalRandom.current().nextInt(0, SIZE),
                     ThreadLocalRandom.current().nextInt(0, SIZE),
                     ThreadLocalRandom.current().nextInt(0, SIZE),
-                    ThreadLocalRandom.current().nextInt(0, SIZE),
+                    ThreadLocalRandom.current().nextInt(0, SIZE)
             });
         }
         System.out.println("STARTING SETS OF ARMOR: \n" +
                 "HELMET: " + inv[0] + "\n" +
                 "CHESTPLATE: "+ inv[1] + "\n" +
-                "LEGGINGS: "+ inv[1] + "\n" +
-                "BOOTS: "+ inv[1] + "\n");
+                "LEGGINGS: "+ inv[2] + "\n" +
+                "BOOTS: "+ inv[3] + "\n");
     }
 
-    public CustomGA(int which, int[] priority) {
+    public IntGA(int[] priority) {
         this();
         this.priority = priority;
     }
 
-    public void run() {
-        while (calculateFitness(population.peekFirst()) != 0 && GENERATIONS < MAX_ITERATIONS) {
-            crossover();
-            if (ThreadLocalRandom.current().nextInt(0, 20) != 0) {
-                uniformMutation();
-            }
-            currentBest = population.peekFirst();
-            bestFitnessRunningTotal += calculateFitness(currentBest);
-            GENERATIONS++;
-        }
-        meanBestFitness = bestFitnessRunningTotal/GENERATIONS;
-        bestFitness = calculateFitness(currentBest);
-        printStats();
+    public IntGA(int first, int second, int small) {
+        this();
+        this.FIRST_PENALTY = first;
+        this.SECOND_PENALTY = second;
+        this.SMALL_PENALTY = small;
     }
-
     /**
      * 1 - point crossover, with random line drawn.
      */
-    private void crossover() {
+    void crossover() {
         int TOP_SIZE = 5;
         Object[] arr = population.toArray();
         int p1Num = ThreadLocalRandom.current().nextInt(0, TOP_SIZE);
@@ -96,24 +67,14 @@ public class CustomGA {
     }
 
     /* uniformMutation for random member of population */
-    private void uniformMutation() {
+    void mutation() {
         Object[] arr = population.toArray();
         int[] item = (int[]) arr[ThreadLocalRandom.current().nextInt(10, arr.length)];
         item[ThreadLocalRandom.current().nextInt(0, 4)] = ThreadLocalRandom.current().nextInt(0, SIZE);
         population.add(item);
     }
 
-    public double calculateFitness(int[] equipped) {
-        int[] statDistribution = calculateStatDistribution(equipped);
-
-        int currentTotal = 0;
-        currentTotal -= Math.max(0,((100 - statDistribution[priority[0]]) * FIRST_PENALTY));
-        currentTotal -= Math.max(0,((100 - statDistribution[priority[1]]) * SECOND_PENALTY));
-
-        return currentTotal;
-    }
-
-    private int[] calculateStatDistribution(int[] equipped) {
+    int[] calculateStatDistribution(int[] equipped) {
         Armor helmet = inv[0].inventory[equipped[0]];
         Armor chestplate = inv[1].inventory[equipped[1]];
         Armor leggings = inv[2].inventory[equipped[2]];
@@ -130,7 +91,7 @@ public class CustomGA {
         return statDistribution;
     }
 
-    public void printStats() {
+    void printStats() {
         int[] bestStats = calculateStatDistribution(currentBest);
         System.out.println("BEST ARMOR SET FOUND: \n" +
                 "STR: " + bestStats[0] + "\n" +
@@ -144,6 +105,6 @@ public class CustomGA {
                 "HELMET[" + currentBest[0] + "]: " + inv[0].inventory[currentBest[0]] + "\n" +
                 "CHESTPLATE[" + currentBest[1] + "]: " + inv[1].inventory[currentBest[1]] + "\n" +
                 "LEGGINGS[" + currentBest[2] + "]: " + inv[2].inventory[currentBest[2]] + "\n" +
-                "BOOTS[" + currentBest[3] + "]: " + inv[3].inventory[currentBest[3]]);
+                "BOOTS[" + currentBest[3] + "]: " + inv[3].inventory[currentBest[3]]+"\n");
     }
 }
