@@ -13,13 +13,16 @@ public class BinaryStringGA extends GeneticBaseClass<String>{
         for (int i = 0; i < inv.length; i++) {
             inv[i] = new ArmorSet(SIZE);
         }
+        double firstFitness = 0;
         for (int i = 0; i < POPULATION_SIZE; i++) {
             String s = "";
             for (int j = 0; j < BIT_LENGTH*4; j++) {
                 s+= ThreadLocalRandom.current().nextInt(2);
             }
             population.add(s);
+            firstFitness += calculateFitness(s);
         }
+        System.out.println("INITIAL MEAN FITNESS: " + firstFitness/POPULATION_SIZE);
         System.out.println("STARTING SETS OF ARMOR: \n" +
                 "HELMET: " + inv[0] + "\n" +
                 "CHESTPLATE: "+ inv[1] + "\n" +
@@ -55,8 +58,12 @@ public class BinaryStringGA extends GeneticBaseClass<String>{
         int crossoverPoint = ThreadLocalRandom.current().nextInt(1,BIT_LENGTH*4-1);
         String c1 = p1.substring(0,crossoverPoint) + p2.substring(crossoverPoint, p2.length());
         String c2 = p2.substring(0,crossoverPoint) + p1.substring(crossoverPoint, p1.length());
-        population.add(c1);
-        population.add(c2);
+        boolean childAdded = false;
+
+        if (!population.contains(c1))
+            population.add(c1);
+        if (!population.contains(c2))
+            population.add(c2);
     }
 
     void mutation() {
@@ -103,5 +110,11 @@ public class BinaryStringGA extends GeneticBaseClass<String>{
                 "CHESTPLATE[" + currentBest.substring(BIT_LENGTH, 2*BIT_LENGTH) + "]: " + inv[1].inventory[Integer.parseInt(currentBest.substring(BIT_LENGTH, 2*BIT_LENGTH),2)] + "\n" +
                 "LEGGINGS[" + currentBest.substring(2*BIT_LENGTH, 3*BIT_LENGTH) + "]: " + inv[2].inventory[Integer.parseInt(currentBest.substring(2*BIT_LENGTH, 3*BIT_LENGTH),2)] + "\n" +
                 "BOOTS[" + currentBest.substring(3*BIT_LENGTH, 4*BIT_LENGTH) + "]: " + inv[3].inventory[Integer.parseInt(currentBest.substring(3*BIT_LENGTH, 4*BIT_LENGTH),2)] + "\n");
+    }
+
+    void printMember(String member) {
+        System.out.print("[");
+        System.out.print(member);
+        System.out.print("]");
     }
 }

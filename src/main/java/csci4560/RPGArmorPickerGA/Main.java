@@ -1,6 +1,7 @@
 package csci4560.RPGArmorPickerGA;
 
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Main{
 
@@ -20,6 +21,8 @@ public class Main{
                     "D - run GA x times with custom priority\n" +
                     "E - compare representations of both GAs\n" +
                     "F - set penalties\n" +
+                    "G - run GA competition\n" +
+                    "H - run time taken to reach success\n" +
                     "Q - quit");
             op = kb.nextLine();
             if (op.equalsIgnoreCase("A")) {
@@ -79,6 +82,16 @@ public class Main{
                 int small = kb.nextInt();
                 kb.nextLine();
                 testPenalty(iterations, new int[]{first, second, small});
+            } else if (op.equalsIgnoreCase("G")) {
+                System.out.println("How many iterations?");
+                int iterations = kb.nextInt();
+                kb.nextLine();
+                runCompetitionMultiple(iterations);
+            } else if (op.equalsIgnoreCase("H")) {
+                System.out.println("How many iterations?");
+                int iterations = kb.nextInt();
+                kb.nextLine();
+                testTimeTakenSuccess(iterations);
             }
         } while (!op.equalsIgnoreCase("Q"));
 
@@ -104,15 +117,34 @@ public class Main{
         }
     }
 
+    private static void testTimeTakenSuccess(int iterations) {
+        int counter = 0;
+        long startTime = System.nanoTime();
+        for (int i = 0; i < iterations; i++) {
+            IntGA armorPicker = new IntGA();
+            armorPicker.run("RUNTIME");
+            if (armorPicker.bestFitness == 0) {
+                counter ++;
+            }
+        }
+        long endTime = System.nanoTime();
+        System.out.printf("%nSUCCESS RATE: %.2f%% (%d/%d)%n",(double)counter/iterations*100, counter, iterations);
+        System.out.println("AVERAGE TIME TO REACH: " + (endTime - startTime)/iterations);
+    }
+
     private static void testSuccessRate(int iterations) {
+        int gen = 0;
         int counter = 0;
         for (int i = 0; i < iterations; i++) {
             IntGA armorPicker = new IntGA();
-            armorPicker.run();
-            if (armorPicker.bestFitness == 0)
+            armorPicker.run("SUCCESS");
+            if (armorPicker.bestFitness == 0) {
                 counter++;
+                gen += armorPicker.GENERATIONS;
+            }
         }
         System.out.printf("%nSUCCESS RATE: %.2f%% (%d/%d)%n",(double)counter/iterations*100, counter, iterations);
+        System.out.printf("AVERAGE # OF GEN: %d%n",gen/counter);
     }
 
     private static void testSuccessRate(int iterations, int[] priority) {
@@ -138,14 +170,16 @@ public class Main{
     }
 
     private static void testRepresentations(int iterations) {
-
+        int top5MeanInt = 0;
+        int top5MeanBin = 0;
         int intCounter = 0;
         int intMean = 0;
         long startTime = System.nanoTime();
         for (int i = 0; i < iterations; i++) {
             IntGA armorPicker = new IntGA();
             armorPicker.run();
-            intMean += armorPicker.meanBestFitness;
+            intMean += armorPicker.bestFitness;
+            top5MeanInt += armorPicker.meanTop5Fitness;
             if (armorPicker.bestFitness == 0)
                 intCounter++;
         }
@@ -158,7 +192,8 @@ public class Main{
         for (int i = 0; i < iterations; i++) {
             BinaryStringGA armorPicker = new BinaryStringGA();
             armorPicker.run();
-            binMean += armorPicker.meanBestFitness;
+            binMean += armorPicker.bestFitness;
+            top5MeanBin += armorPicker.meanTop5Fitness;
             if (armorPicker.bestFitness == 0)
                 binCounter++;
         }
@@ -169,10 +204,34 @@ public class Main{
         System.out.println("INT TOTAL TIME ELAPSED: " + intDuration);
         System.out.println("INT AVG TIME ELAPSED: " + intDuration/iterations);
         System.out.println("AVG MEAN BEST FITNESS: " + intMean/iterations);
+        System.out.println("AVG TOP 5 FITNESSES: " + top5MeanInt/iterations);
         System.out.println();
         System.out.printf("BIN SUCCESS RATE: %.2f%% (%d/%d)%n",(double)binCounter/iterations*100, binCounter, iterations);
         System.out.println("BIN TIME ELAPSED: " + binDuration);
         System.out.println("BIN AVG TIME ELAPSED: " + binDuration/iterations);
         System.out.println("AVG MEAN BEST FITNESS: " + binMean/iterations);
+        System.out.println("AVG TOP 5 FITNESSES: " + top5MeanBin/iterations);
+    }
+
+    private static void runCompetition() {
+        CompareGA cp = new CompareGA();
+        cp.run();
+    }
+
+    private static void runCompetitionMultiple(int iterations) {
+        int intWin = 0, binWin = 0;
+        for (int i = 0; i < iterations; i++) {
+            CompareGA cp = new CompareGA();
+            cp.run();
+            if (cp.whoWon.equalsIgnoreCase("INT")) {
+                intWin++;
+            } else if (cp.whoWon.equalsIgnoreCase("BIN")) {
+                binWin++;
+            }
+        }
+        System.out.println(iterations + " COMPETITION STATS:" );
+        System.out.printf("INT WON %d TIMES! (%.2f%%)%n", intWin, (double)intWin/iterations * 100);
+        System.out.printf("BIN WON %d TIMES! (%.2f%%)%n", binWin, (double)binWin/iterations * 100);
+        System.out.printf("TIMEOUT OR DRAW %d TIMES! (%.2f%%)%n", iterations-intWin-binWin, (double)(iterations-intWin-binWin)/iterations*100);
     }
 }

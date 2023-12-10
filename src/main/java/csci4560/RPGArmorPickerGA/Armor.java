@@ -16,18 +16,24 @@ public class Armor {
     int DEX;
     /* Intelligence stat of Armor piece */
     int INT;
-    int[] stats;
+    int[] stats = new int[3];
 
     /**
      * Initializes an {@code Armor} object to have a stat between {@code MIN_STAT} and {@code MAX_STAT} inclusive,
      * with total of all stats adhering to {@code TOTAL_STAT}
      */
     public Armor() {
-        this.STR = ThreadLocalRandom.current().nextInt(MIN_STAT, MAX_STAT + 1);
-        this.DEX = ThreadLocalRandom.current().nextInt(MIN_STAT, Math.min(TOTAL_STAT - STR - 1, MAX_STAT + 1));
-        this.INT = Math.min(MAX_STAT, TOTAL_STAT - STR - DEX);
-        int remainder = TOTAL_STAT - STR - DEX - INT;
-        stats = new int[]{STR, DEX, INT};
+        int whichFirst = ThreadLocalRandom.current().nextInt(0, 3);
+        int whichSecond;
+        do {
+            whichSecond = ThreadLocalRandom.current().nextInt(0,3);
+        } while (whichSecond == whichFirst);
+        int whichThird = 3 - whichFirst - whichSecond;
+
+        this.stats[whichFirst] = ThreadLocalRandom.current().nextInt(MIN_STAT, MAX_STAT + 1);
+        this.stats[whichSecond] = ThreadLocalRandom.current().nextInt(MIN_STAT, Math.min(TOTAL_STAT - stats[whichFirst] - 1, MAX_STAT + 1));
+        this.stats[whichThird] = ThreadLocalRandom.current().nextInt(MIN_STAT, Math.min(TOTAL_STAT - stats[whichFirst] - stats[whichSecond], MAX_STAT) + 1);
+        int remainder = TOTAL_STAT - stats[whichFirst] - stats[whichSecond] - stats[whichThird];
 
         while (remainder != 0) {
             int statChosen = ThreadLocalRandom.current().nextInt(0,3);
@@ -36,11 +42,18 @@ public class Armor {
                 remainder--;
             }
         }
+
         this.STR = stats[0];
         this.DEX = stats[1];
         this.INT = stats[2];
     }
 
+    public Armor(int[] stat) {
+        this.stats = stat;
+        this.STR = stats[0];
+        this.DEX = stats[1];
+        this.INT = stats[2];
+    }
     public String toString() {
         return "{" + this.stats[0] + ", " + this.stats[1] + ", " + this.stats[2] + "}";
     }

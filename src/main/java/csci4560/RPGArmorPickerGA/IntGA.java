@@ -1,5 +1,6 @@
 package csci4560.RPGArmorPickerGA;
 
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class IntGA extends GeneticBaseClass<int[]> {
@@ -10,14 +11,18 @@ public class IntGA extends GeneticBaseClass<int[]> {
         for (int i = 0; i < inv.length; i++) {
             inv[i] = new ArmorSet(SIZE);
         }
+        double fitnessTotal = 0;
         for (int i = 0; i < POPULATION_SIZE; i++) {
-            population.add(new int[]{
+            int[] member = new int[]{
                     ThreadLocalRandom.current().nextInt(0, SIZE),
                     ThreadLocalRandom.current().nextInt(0, SIZE),
                     ThreadLocalRandom.current().nextInt(0, SIZE),
                     ThreadLocalRandom.current().nextInt(0, SIZE)
-            });
+            };
+            population.add(member);
+            fitnessTotal += calculateFitness(member);
         }
+        System.out.println("STARTING MEAN FITNESS: " + fitnessTotal/POPULATION_SIZE);
         System.out.println("STARTING SETS OF ARMOR: \n" +
                 "HELMET: " + inv[0] + "\n" +
                 "CHESTPLATE: "+ inv[1] + "\n" +
@@ -62,8 +67,19 @@ public class IntGA extends GeneticBaseClass<int[]> {
             c1[i] = p2[i];
             c2[i] = p1[i];
         }
-        population.add(c1);
-        population.add(c2);
+
+        if (!contains(c1))
+            population.add(c1);
+        if (!contains(c2))
+            population.add(c2);
+    }
+
+    boolean contains(int[] ind) {
+        for (int[] item : population) {
+            if (Arrays.equals(item, ind))
+                return true;
+        }
+        return false;
     }
 
     /* uniformMutation for random member of population */
@@ -106,5 +122,13 @@ public class IntGA extends GeneticBaseClass<int[]> {
                 "CHESTPLATE[" + currentBest[1] + "]: " + inv[1].inventory[currentBest[1]] + "\n" +
                 "LEGGINGS[" + currentBest[2] + "]: " + inv[2].inventory[currentBest[2]] + "\n" +
                 "BOOTS[" + currentBest[3] + "]: " + inv[3].inventory[currentBest[3]]+"\n");
+    }
+
+    void printMember(int[] member) {
+        System.out.print("[");
+        for (int i = 0; i < member.length; i++) {
+            System.out.print(member[i] + ", ");
+        }
+        System.out.print("]");
     }
 }
